@@ -2,5 +2,6 @@
 {
     "editor.insertSpaces": true,
     "javascript.format.insertSpaceAfterFunctionKeywordForAnonymousFunctions": true,
-    "editor.renderIndentGuides": true
+    "editor.renderIndentGuides": true,
+    "editor.tabSize": 2
 }

@@ -1,4 +1,4 @@
-var db = require('../db')
+var db = require('../db/db')
 
 const createNewEvent = (eventFields) => {
   return db('UserEvent')

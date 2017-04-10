@@ -26,7 +26,7 @@ router.get('/account/:account_id', (req, res) => {
 /**
  * Cancels an event by a given event id.
  */
-router.patch('/cancel/:event_id', (req, res) => {
+router.patch('/cancel', (req, res) => {
   res.send('ok')
 })
 
