@@ -1,34 +1,60 @@
 var db = require('../db')
 
+const createNewEvent = (eventFields) => {
+  return db('UserEvent')
+    .insert(eventFields)
+}
+
 const getEventById = (eventId) => {
   return db('Account')
-    .outerJoin('UserEvent_Account', 'Account.id', 'UserEvent_Account.account_id')
-    .outerJoin('UserEvent', 'UserEvent_Account.userevent_id', 'UserEvent.id')
+    .outerJoin('EventApproval', 'Account.id', 'EventApproval.account_id')
+    .outerJoin('UserEvent', 'EventApproval.userevent_id', 'UserEvent.id')
     .where('UserEvent.id', eventId)
 }
 
-const getEvents = (accountId) => {
+const getEventsForAccountId = (accountId) => {
   return db('Account')
-    .innerJoin('UserEvent_Account', 'Account.id', 'UserEvent_Account.account_id')
-    .innerJoin('UserEvent', 'UserEvent_Account.userevent_id', 'UserEvent.id')
+    .innerJoin('EventApproval', 'Account.id', 'EventApproval.account_id')
+    .innerJoin('UserEvent', 'EventApproval.userevent_id', 'UserEvent.id')
     .where('Account.id', accountId)
 }
 
-const cancelEventById = (eventId) => {
+const modifyEventStatus = (eventId, eventStatus) => {
   return db('UserEvent')
     .where('id', eventId)
-    .update({ eventStatus: 'Cancelled' })
+    .update({ eventStatus })
 }
 
-const changeEventApproval = (eventId, approved) => {
-  return db('UserEvent_Account')
+const changeEventApproval = (eventId, approval) => {
+  return db('EventApproval')
     .where('userevent_id', eventId)
-    .update({ approved })
+    .update({ approval })
+}
+
+const changeEventFields = (eventId, fields) => {
+  return db('UserEvent')
+    .where('id', eventId)
+    .update(fields)
+}
+
+const getNumberOfInviteesForEvent = (eventId) => {
+  return db('EventApproval')
+    .count('account_id')
+    .where('event_id', eventId)
+}
+
+const dateVoteForEventId = (eventId, accountId, date) => {
+  return db('EventDate')
+    .insert({ account_id: accountId, userevent_id: eventId, date })
 }
 
 module.exports = {
+  createNewEvent,
   getEventById,
-  getEvents,
-  cancelEventById,
+  getEventsForAccountId,
+  modifyEventStatus,
   changeEventApproval,
+  changeEventFields,
+  getNumberOfInviteesForEvent,
+  dateVoteForEventId,
 }

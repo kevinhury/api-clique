@@ -7,7 +7,6 @@
 var app = require('../app')
 var debug = require('debug')('api-clique:server')
 var http = require('http')
-var knex = require('../db')
 
 /**
  * Normalize a port into a number, string, or false.
