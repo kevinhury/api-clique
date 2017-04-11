@@ -7,15 +7,24 @@ const createNewEvent = (eventFields) => {
 
 const getEventById = (eventId) => {
   return db('Account')
-    .outerJoin('EventApproval', 'Account.id', 'EventApproval.account_id')
-    .outerJoin('UserEvent', 'EventApproval.userevent_id', 'UserEvent.id')
+    .innerJoin('EventInvitation', 'Account.id', 'EventInvitation.account_id')
+    .innerJoin('UserEvent', 'EventInvitation.userevent_id', 'UserEvent.id')
     .where('UserEvent.id', eventId)
+    .then((results) => {
+      const atendees = results.map((object) => {
+        const { pid, username, image_url, phone, approval, admin, date1, date2, date3 } = object
+        return { pid, username, image_url, phone, approval, admin, date1, date2, date3 }
+      })
+      const { title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees } = results[0]
+      const event = { title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees }
+      return { event, atendees }
+    })
 }
 
 const getEventsForAccountId = (accountId) => {
   return db('Account')
-    .innerJoin('EventApproval', 'Account.id', 'EventApproval.account_id')
-    .innerJoin('UserEvent', 'EventApproval.userevent_id', 'UserEvent.id')
+    .innerJoin('EventInvitation', 'Account.id', 'EventInvitation.account_id')
+    .innerJoin('UserEvent', 'EventInvitation.userevent_id', 'UserEvent.id')
     .where('Account.id', accountId)
 }
 
@@ -25,8 +34,8 @@ const modifyEventStatus = (eventId, eventStatus) => {
     .update({ eventStatus })
 }
 
-const changeEventApproval = (eventId, approval) => {
-  return db('EventApproval')
+const changeEventInvitation = (eventId, approval) => {
+  return db('EventInvitation')
     .where('userevent_id', eventId)
     .update({ approval })
 }
@@ -38,7 +47,7 @@ const changeEventFields = (eventId, fields) => {
 }
 
 const getNumberOfInviteesForEvent = (eventId) => {
-  return db('EventApproval')
+  return db('EventInvitation')
     .count('account_id')
     .where('event_id', eventId)
 }
@@ -53,7 +62,7 @@ module.exports = {
   getEventById,
   getEventsForAccountId,
   modifyEventStatus,
-  changeEventApproval,
+  changeEventInvitation,
   changeEventFields,
   getNumberOfInviteesForEvent,
   dateVoteForEventId,
