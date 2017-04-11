@@ -81,7 +81,7 @@
             }
         ],
         "no-unused-vars": [
-            "error",
+            1,
             {
                 "argsIgnorePattern": "^_"
             }
