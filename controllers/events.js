@@ -27,9 +27,9 @@ const modifyEventStatus = (eventId, eventStatus) => {
     .update({ eventStatus })
 }
 
-const changeEventInvitation = (eventId, approval) => {
+const changeEventInvitation = (accountId, eventId, approval) => {
   return db('EventInvitation')
-    .where('userevent_id', eventId)
+    .where({ account_id: accountId, userevent_id: eventId })
     .update({ approval })
 }
 
@@ -41,13 +41,28 @@ const changeEventFields = (eventId, fields) => {
 
 const getNumberOfInviteesForEvent = (eventId) => {
   return db('EventInvitation')
-    .count('account_id')
-    .where('event_id', eventId)
+    .count('account_id as count')
+    .where('userevent_id', eventId)
+    .then((results) => results[0].count)
 }
 
-const dateVoteForEventId = (eventId, accountId, date) => {
-  return db('EventDate')
-    .insert({ account_id: accountId, userevent_id: eventId, date })
+const dateVoteForEventId = (accountId, eventId, dates) => {
+  return db('EventInvitation')
+    .where({ account_id: accountId, userevent_id: eventId })
+    .update({ date1: dates[0], date2: dates[1], date3: dates[2] })
+}
+
+const isAccountAdminInEvent = (accountId, eventId) => {
+  return db('EventInvitation')
+    .where({ account_id: accountId, userevent_id: eventId })
+    .map((result) => result.admin)
+    .then((result) => result[0] || 0)
+}
+
+const availableDatesForEvent = (eventId) => {
+  return db('EventInvitation')
+    .where({ userevent_id: eventId, admin: true })
+    .map((result) => { return { date1: result.date1, date2: result.date2, date3: result.date3 } })
 }
 
 module.exports = {
@@ -59,6 +74,8 @@ module.exports = {
   changeEventFields,
   getNumberOfInviteesForEvent,
   dateVoteForEventId,
+  isAccountAdminInEvent,
+  availableDatesForEvent,
 }
 
 const mapEventResultsToResponse = (results) => {
