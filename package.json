@@ -6,11 +6,13 @@
     "start": "node ./bin/www"
   },
   "dependencies": {
+    "bcrypt": "^1.0.2",
     "body-parser": "~1.17.1",
     "cookie-parser": "~1.4.3",
     "debug": "~2.6.3",
     "express": "~4.15.2",
     "jade": "~1.11.0",
+    "jsonwebtoken": "^7.3.0",
     "knex": "~0.12.9",
     "morgan": "~1.8.1",
     "mysql": "~2.13.0",
