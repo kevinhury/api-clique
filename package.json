@@ -11,18 +11,19 @@
     "debug": "~2.6.3",
     "express": "~4.15.2",
     "jade": "~1.11.0",
-    "morgan": "~1.8.1",
-    "serve-favicon": "~2.4.2",
     "knex": "~0.12.9",
-    "mysql": "~2.13.0"
+    "morgan": "~1.8.1",
+    "mysql": "~2.13.0",
+    "nexmo": "^2.0.2",
+    "serve-favicon": "~2.4.2"
   },
   "devDependencies": {
     "eslint": "~3.19.0",
     "eslint-config-standard": "~10.2.0",
-    "eslint-plugin-standard": "~3.0.0",
-    "eslint-plugin-mocha": "~4.9.0",
     "eslint-plugin-import": "~2.2.0",
+    "eslint-plugin-mocha": "~4.9.0",
     "eslint-plugin-node": "~4.2.2",
-    "eslint-plugin-promise": "~3.5.0"
+    "eslint-plugin-promise": "~3.5.0",
+    "eslint-plugin-standard": "~3.0.0"
   }
 }
