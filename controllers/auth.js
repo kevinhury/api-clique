@@ -3,11 +3,15 @@ var secret = require('../config/secrets/jwt').secret
 var bcrypt = require('bcrypt')
 var db = require('../db/db')
 // var smsservice = require('../services/smsservice')
+var uuidservice = require('../services/uuidservice')
 const smsservice = { sendSMS: (recipient, message, callback) => { callback(null) } }
 
 var AccountsTokens = []
 const genericMessage = ''
 
+// sends sms message to phone number specified
+// generates a random token
+// saves the user in memory until a auth-register comes
 const registerNewUser = (phone, password) => {
   return new Promise((resolve, reject) => {
     smsservice.sendSMS(phone, genericMessage, (err, _) => {
@@ -21,6 +25,9 @@ const registerNewUser = (phone, password) => {
   })
 }
 
+// checks if the token sent by sms is valid
+// saves a new user to the database
+// returns pid
 const authRegisterToken = (phone, password, token) => {
   return new Promise((resolve, reject) => {
     const user = getRegisteredAccount(phone, password, token)
@@ -28,8 +35,8 @@ const authRegisterToken = (phone, password, token) => {
       return reject(new Error('user not found'))
     }
     AccountsTokens = AccountsTokens.filter((x) => x !== user)
-    return persistNewUser(phone, password)
-  }).then(() => authenticateUser(phone, password))
+    resolve(token)
+  }).then(() => persistNewUser(phone, password))
 }
 
 const authMiddleware = (req, res, next) => {
@@ -47,25 +54,44 @@ const authMiddleware = (req, res, next) => {
   })
 }
 
+// authenticates a user by its password
+// returns an access token to make actions
 const authenticateUser = (pid, password) => {
   return queryUserInformation(pid)
     .then((user) => {
+      if (!user) {
+        throw new Error('Invalid credentials.')
+      }
       return comparePassword(password, user.password)
+        .then((results) => {
+          if (!results) {
+            throw new Error('Invalid credentials.')
+          }
+          return jwt.sign(user, secret, { expiresIn: 1440 })
+        })
     })
 }
 
+// saves the user to the database
 const persistNewUser = (phone, password) => {
   return hashPassword(password)
     .then((hash) => {
       const pid = generatePID()
       return db('Account')
         .insert({ pid, username: phone, phone, password: hash })
+        .then((results) => {
+          if (results.length < 1) {
+            throw new Error('Persisting user failed.')
+          }
+          return { pid }
+        })
     })
 }
 
+// looks for a specific user by its pid
 const queryUserInformation = (pid) => {
   return db('Account')
-    .where('pid', pid)
+    .where({ pid })
     .first()
 }
 
@@ -77,6 +103,7 @@ const comparePassword = (userPassword, dbPassword) => {
   return bcrypt.compare(userPassword, dbPassword)
 }
 
+// returns a user that is listed in the sms token array
 const getRegisteredAccount = (phone, password, token) => {
   return AccountsTokens.find((value) => {
     return value.phone === phone &&
@@ -89,12 +116,11 @@ const generateToken = (length) => {
   const min = 0
   const max = 9
   const random = () => Math.round(Math.random() * (max - min) + min)
-  // return Array.apply(null, Array(length)).map(random).map(String).join('')
-  return '123456';
+  return Array.apply(null, Array(length)).map(random).map(String).join('')
 }
 
 const generatePID = () => {
-  return 'qwert'
+  return uuidservice.generateUUID()
 }
 
 module.exports = {
