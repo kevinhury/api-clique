@@ -1,6 +1,9 @@
+var jwt = require('jsonwebtoken')
+var secret = require('../config/secrets/jwt').secret
 var bcrypt = require('bcrypt')
 var db = require('../db/db')
-var smsservice = require('../services/smsservice')
+// var smsservice = require('../services/smsservice')
+const smsservice = { sendSMS: (recipient, message, callback) => { callback(null) } }
 
 var AccountsTokens = []
 const genericMessage = ''
@@ -29,28 +32,39 @@ const authRegisterToken = (phone, password, token) => {
   }).then(() => authenticateUser(phone, password))
 }
 
+const authMiddleware = (req, res, next) => {
+  const token = req.body.token || req.headers['x-access-token']
+  if (!token) {
+    return res.status(403).send({ success: false, message: 'No token provided.' })
+  }
+
+  jwt.verify(token, secret, (err, decoded) => {
+    if (err) {
+      return res.json({ success: false, message: 'Failed to authenticate token.' })
+    }
+    req.decoded = decoded
+    next()
+  })
+}
+
 const authenticateUser = (pid, password) => {
   return queryUserInformation(pid)
     .then((user) => {
       return comparePassword(password, user.password)
-    })
-    .then((res) => {
-      if (!res) {
-        throw new Error('bad password')
-      }
     })
 }
 
 const persistNewUser = (phone, password) => {
   return hashPassword(password)
     .then((hash) => {
-      return db('UserEvent')
-        .insert({ phone, password: hash })
+      const pid = generatePID()
+      return db('Account')
+        .insert({ pid, username: phone, phone, password: hash })
     })
 }
 
 const queryUserInformation = (pid) => {
-  return db('UserEvent')
+  return db('Account')
     .where('pid', pid)
     .first()
 }
@@ -74,13 +88,24 @@ const getRegisteredAccount = (phone, password, token) => {
 const generateToken = (length) => {
   const min = 0
   const max = 9
-  const random = () => Math.random() * (max - min) + min
-  const round = (x) => Math.round(x)
-  return Array.apply(null, Array(length)).map(round(random))
+  const random = () => Math.round(Math.random() * (max - min) + min)
+  // return Array.apply(null, Array(length)).map(random).map(String).join('')
+  return '123456';
+}
+
+const generatePID = () => {
+  return 'qwert'
 }
 
 module.exports = {
   registerNewUser,
   authRegisterToken,
+  authMiddleware,
   authenticateUser,
+  persistNewUser,
+  queryUserInformation,
+  hashPassword,
+  comparePassword,
+  getRegisteredAccount,
+  generateToken,
 }

@@ -1,0 +1,44 @@
+#!/usr/bin/env node
+
+const controller = require('../controllers/auth')
+
+const phone = '972544341796'
+const password = 'secretpassword'
+
+controller.registerNewUser(phone, password)
+  .then((result) => {
+    console.log(result)
+  })
+
+
+// var service = require('../services/smsservice')
+
+// service.sendSMS('972525452204', 'Test', function (err, response) {
+//   console.log(JSON.stringify(err))
+//   console.log(JSON.stringify(response))
+// })
+
+// {"message-count":"1","messages":[{"to":"972525452204","message-id":"0C0000002A50ACAE","status":"0","remaining-balance":"1.95840000","message-price":"0.01040000","network":"42502"}]}
+
+/*
+var controller = require('../controllers/events')
+var knex = require('../db/db')
+var account = require('../db/seeds/account_seed')
+var userevent = require('../db/seeds/userevent_seed')
+var eventinvitation = require('../db/seeds/eventinvitation_seed')
+
+const seed = () => {
+  account.seed(knex)
+    .then(function () {
+      return userevent.seed(knex)
+    })
+    .then(function () {
+      return eventinvitation.seed(knex)
+    })
+    .then(function () {
+      console.log('done')
+      process.exit(0)
+    })
+}
+
+*/
