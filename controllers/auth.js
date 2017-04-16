@@ -83,7 +83,7 @@ const persistNewUser = (phone, password) => {
           if (results.length < 1) {
             throw new Error('Persisting user failed.')
           }
-          return { pid }
+          return pid
         })
     })
 }

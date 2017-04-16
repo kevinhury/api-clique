@@ -5,7 +5,6 @@ const controller = require('../controllers/auth')
 const phone = '972544341796'
 const password = 'secretpassword'
 
-
 // client: fetch user phone and generate password -> send to server
 // server: generate token and saves pairs sends sms with token
 // client: sends token
@@ -14,8 +13,8 @@ controller.registerNewUser(phone, password)
   .then((token) => {
     return controller.authRegisterToken(phone, password, token)
   })
-  .then((user) => {
-    return controller.authenticateUser(user.pid, password)
+  .then((pid) => {
+    return controller.authenticateUser(pid, password)
   })
   .then((results) => {
     console.log(results)
@@ -23,7 +22,6 @@ controller.registerNewUser(phone, password)
   .catch((err) => {
     console.log(err)
   })
-
 
 // var service = require('../services/smsservice')
 
