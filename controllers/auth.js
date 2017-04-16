@@ -2,24 +2,22 @@ var jwt = require('jsonwebtoken')
 var secret = require('../config/secrets/jwt').secret
 var bcrypt = require('bcrypt')
 var db = require('../db/db')
-// var smsservice = require('../services/smsservice')
+var smsservice = require('../services/smsservice')
 var uuidservice = require('../services/uuidservice')
-const smsservice = { sendSMS: (recipient, message, callback) => { callback(null) } }
 
 var AccountsTokens = []
-const genericMessage = ''
 
 // sends sms message to phone number specified
 // generates a random token
 // saves the user in memory until a auth-register comes
 const registerNewUser = (phone, password) => {
+  const token = generateToken(6)
+  AccountsTokens.push({ phone, password, token })
   return new Promise((resolve, reject) => {
-    smsservice.sendSMS(phone, genericMessage, (err, _) => {
+    smsservice.sendSMS(phone, generateSMSMessage(token), (err, _) => {
       if (err) {
         return reject(err)
       }
-      const token = generateToken(6)
-      AccountsTokens.push({ phone, password, token })
       resolve(token)
     })
   })
@@ -123,6 +121,10 @@ const generatePID = () => {
   return uuidservice.generateUUID()
 }
 
+const generateSMSMessage = (token) => {
+  return `This is your new token: ${token}`
+}
+
 module.exports = {
   registerNewUser,
   authRegisterToken,
@@ -134,4 +136,6 @@ module.exports = {
   comparePassword,
   getRegisteredAccount,
   generateToken,
+  generatePID,
+  generateSMSMessage,
 }
