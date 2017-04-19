@@ -4,6 +4,12 @@ var bcrypt = require('bcrypt')
 var db = require('../db/db')
 var smsservice = require('../services/smsservice')
 var uuidservice = require('../services/uuidservice')
+// var smsservice = {
+//   sendSMS: (str, str2, callback) => {
+//     console.log(str2)
+//     callback(null, str)
+//   }
+// }
 
 var AccountsTokens = []
 
@@ -32,7 +38,7 @@ const authRegisterToken = (phone, password, token) => {
     if (!user) {
       return reject(new Error('user not found'))
     }
-    AccountsTokens = AccountsTokens.filter((x) => x !== user)
+    AccountsTokens = AccountsTokens.filter((x) => x.phone !== phone)
     resolve(token)
   }).then(() => persistNewUser(phone, password))
 }
