@@ -17,7 +17,7 @@ const getEventsForAccountId = (accountId) => {
   return db('Account')
     .select('EventInvitation.userevent_id')
     .innerJoin('EventInvitation', 'Account.id', 'EventInvitation.account_id')
-    .where('Account.id', accountId)
+    .where('Account.pid', accountId)
     .map((result) => getEventById(result.userevent_id))
 }
 
