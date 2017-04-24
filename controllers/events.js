@@ -27,10 +27,11 @@ const modifyEventStatus = (eventId, eventStatus) => {
     .update({ eventStatus })
 }
 
-const changeEventInvitation = (accountId, eventId, approval) => {
+const changeEventInvitation = (accountId, eventId, approval, dates) => {
   return db('EventInvitation')
-    .where({ account_id: accountId, userevent_id: eventId })
-    .update({ approval })
+    .innerJoin('Account', 'EventInvitation.account_id', 'Account.id')
+    .where({ pid: accountId, userevent_id: eventId })
+    .update({ approval, date1: dates[0] || null, date2: dates[1] || null, date3: dates[2] || null })
 }
 
 const changeEventFields = (eventId, fields) => {
@@ -83,7 +84,7 @@ const mapEventResultsToResponse = (results) => {
     const { pid, username, image_url, phone, approval, admin, date1, date2, date3 } = object
     return { pid, username, image_url, phone, approval, admin, date1, date2, date3 }
   })
-  const { title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees } = results[0]
-  const event = { title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees }
+  const { id, title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees } = results[0]
+  const event = { id, title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees }
   return { event, atendees }
 }

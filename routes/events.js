@@ -37,8 +37,8 @@ router.get('/account/:account_id', (req, res) => {
  * Cancels an event by a given event id.
  */
 router.patch('/cancel', (req, res) => {
-  const accountId = req.body.account_id
-  const eventId = req.body.event_id
+  const accountId = req.body.pid
+  const eventId = req.body.eventId
   const CANCEL_CODE = 1
   if (!accountId || !eventId) {
     return res.sendStatus(400)
@@ -52,15 +52,29 @@ router.patch('/cancel', (req, res) => {
  * Change an account attendance by an acocunt id and event id.
  */
 router.patch('/changeAttendance', (req, res) => {
-  const accountId = req.body.account_id
-  const eventId = req.body.event_id
+  const accountId = req.body.pid
+  const eventId = req.body.eventId
   const approval = req.body.approval
   if (!accountId || !eventId || !approval) {
     return res.sendStatus(400)
   }
-  controller.changeEventInvitation(accountId, eventId, approval)
+
+  const dates = req.body.dates
+    .map(date => new Date(date))
+    .map(date => {
+      return date.toISOString().slice(0, 19).replace('T', ' ')
+    })
+  if (!Array.isArray(dates) || !dates.length) {
+    return res.sendStatus(400)
+  }
+  // TODO: Add check for admin dates
+  // TODO: Check if admin changes dates
+  controller.changeEventInvitation(accountId, eventId, approval, dates)
     .then(() => res.send({ success: true }))
-    .catch(() => res.send({ success: false }))
+    .catch((err) => {
+      console.log(err)
+      res.send({ success: false })
+    })
 })
 
 /**
