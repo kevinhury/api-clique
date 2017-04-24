@@ -55,8 +55,11 @@ const dateVoteForEventId = (accountId, eventId, dates) => {
 
 const isAccountAdminInEvent = (accountId, eventId) => {
   return db('EventInvitation')
-    .where({ account_id: accountId, userevent_id: eventId })
-    .map((result) => result.admin)
+    .innerJoin('Account', 'EventInvitation.account_id', 'Account.id')
+    .where({ pid: accountId, userevent_id: eventId })
+    .map((result) => {
+      return result.admin
+    })
     .then((result) => result[0] || 0)
 }
 

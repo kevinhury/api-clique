@@ -39,11 +39,16 @@ router.get('/account/:account_id', (req, res) => {
 router.patch('/cancel', (req, res) => {
   const accountId = req.body.pid
   const eventId = req.body.eventId
+  const accessToken = req.body.accessToken
   const CANCEL_CODE = 1
-  if (!accountId || !eventId) {
+  if (!accountId || !eventId || !accessToken) {
     return res.sendStatus(400)
   }
-  controller.modifyEventStatus(eventId, CANCEL_CODE)
+  controller.isAccountAdminInEvent(accountId, eventId)
+    .then((isAdmin) => {
+      if (!isAdmin) { throw isAdmin }
+      return controller.modifyEventStatus(eventId, CANCEL_CODE)
+    })
     .then(() => res.send({ success: true }))
     .catch(() => res.send({ success: false }))
 })
@@ -55,7 +60,8 @@ router.patch('/changeAttendance', (req, res) => {
   const accountId = req.body.pid
   const eventId = req.body.eventId
   const approval = req.body.approval
-  if (!accountId || !eventId || !approval) {
+  const accessToken = req.body.accessToken
+  if (!accountId || !eventId || !approval || !accessToken) {
     return res.sendStatus(400)
   }
 
