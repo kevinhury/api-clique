@@ -64,7 +64,7 @@ router.patch('/changeAttendance', (req, res) => {
     .map(date => {
       return date.toISOString().slice(0, 19).replace('T', ' ')
     })
-  if (!Array.isArray(dates) || !dates.length) {
+  if (approval === '2' && (!Array.isArray(dates) || !dates.length)) {
     return res.sendStatus(400)
   }
   // TODO: Add check for admin dates
