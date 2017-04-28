@@ -1,8 +1,43 @@
 var db = require('../db/db')
 
-const createNewEvent = (eventFields) => {
+const createNewEvent = (fields, accountId) => {
+  const { event, adminInvite, phoneNumbers } = fields
   return db('UserEvent')
-    .insert(eventFields)
+    .insert(event)
+    .then(rowsInserted => rowsInserted[0])
+    .then((eventId) => {
+      return insertAdminInvitation(adminInvite, accountId, eventId)
+        .then(() => insertContactsInvitations(phoneNumbers, eventId))
+        .then(() => eventId)
+    })
+    .then((eventId) => getEventById(eventId))
+}
+
+const insertAdminInvitation = (invite, accountId, eventId) => {
+  const { approval, admin, date1, date2, date3 } = invite
+  return db('EventInvitation')
+    .insert({ account_id: accountId, userevent_id: eventId, approval, admin, date1, date2, date3 })
+    .catch((err) => console.log(err))
+}
+
+const insertContactsInvitations = (phoneNumbers, eventId) => {
+  return db('Account')
+    .whereIn('phone', phoneNumbers)
+    .then(accounts => {
+      const existPhones = accounts.map(account => account.phone)
+      const exist = accounts.map(account => {
+        return { account_id: account.id, userevent_id: eventId }
+      })
+      const notExist = phoneNumbers
+        .filter(phone => existPhones.indexOf(phone) < 0)
+        .map(phone => {
+          return { phone, userevent_id: eventId }
+        })
+      return Promise.all([
+        db('PhoneInvitation').insert(notExist),
+        db('EventInvitation').insert(exist)
+      ])
+    })
 }
 
 const getEventById = (eventId) => {
@@ -19,6 +54,13 @@ const getEventsForAccountId = (accountId) => {
     .innerJoin('EventInvitation', 'Account.id', 'EventInvitation.account_id')
     .where('Account.pid', accountId)
     .map((result) => getEventById(result.userevent_id))
+}
+
+const getAccountIdForPid = (pid) => {
+  return db('Account')
+    .select('id')
+    .where({ pid })
+    .then(res => res[0].id)
 }
 
 const modifyEventStatus = (eventId, eventStatus) => {
@@ -40,19 +82,6 @@ const changeEventFields = (eventId, fields) => {
     .update(fields)
 }
 
-const getNumberOfInviteesForEvent = (eventId) => {
-  return db('EventInvitation')
-    .count('account_id as count')
-    .where('userevent_id', eventId)
-    .then((results) => results[0].count)
-}
-
-const dateVoteForEventId = (accountId, eventId, dates) => {
-  return db('EventInvitation')
-    .where({ account_id: accountId, userevent_id: eventId })
-    .update({ date1: dates[0], date2: dates[1], date3: dates[2] })
-}
-
 const isAccountAdminInEvent = (accountId, eventId) => {
   return db('EventInvitation')
     .innerJoin('Account', 'EventInvitation.account_id', 'Account.id')
@@ -63,23 +92,15 @@ const isAccountAdminInEvent = (accountId, eventId) => {
     .then((result) => result[0] || 0)
 }
 
-const availableDatesForEvent = (eventId) => {
-  return db('EventInvitation')
-    .where({ userevent_id: eventId, admin: true })
-    .map((result) => { return { date1: result.date1, date2: result.date2, date3: result.date3 } })
-}
-
 module.exports = {
   createNewEvent,
   getEventById,
   getEventsForAccountId,
+  getAccountIdForPid,
   modifyEventStatus,
   changeEventInvitation,
   changeEventFields,
-  getNumberOfInviteesForEvent,
-  dateVoteForEventId,
   isAccountAdminInEvent,
-  availableDatesForEvent,
 }
 
 const mapEventResultsToResponse = (results) => {

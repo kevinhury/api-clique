@@ -1,3 +1,4 @@
+var moment = require('moment')
 var express = require('express')
 const router = express.Router()
 const controller = require('../controllers/events')
@@ -6,7 +7,18 @@ const controller = require('../controllers/events')
  * Creates a new event.
  */
 router.post('/createEvent', (req, res) => {
-  res.send('ok')
+  const pid = req.body.pid
+  const accessToken = req.body.accessToken
+  const fields = req.body.fields
+  if (!pid || !accessToken) {
+    return res.sendStatus(400)
+  }
+  const eventFields = fetchEventFieldsFromBody(fields)
+  // Validate form
+  controller.getAccountIdForPid(pid)
+    .then(accountId => controller.createNewEvent(eventFields, accountId))
+    .then((results) => res.send({ success: true, results }))
+    .catch(() => res.send({ success: false }))
 })
 
 /**
@@ -101,21 +113,6 @@ router.patch('/modifyFields', (req, res) => {
     .catch(() => res.send({ success: false }))
 })
 
-/**
- * Make a date vote for a given event id, date and account id.
- */
-router.post('/vote', (req, res) => {
-  const accountId = req.body.account_id
-  const eventId = req.body.eventId
-  const dates = req.body.dates
-  if (!accountId || !eventId) {
-    return res.sendStatus(400)
-  }
-  controller.dateVoteForEventId(accountId, eventId, dates)
-    .then(() => res.send({ success: true }))
-    .catch(() => res.send({ success: false }))
-})
-
 module.exports = router
 
 const populateFieldsWithRequestBody = (body) => {
@@ -129,4 +126,15 @@ const populateFieldsWithRequestBody = (body) => {
   if (body.minAtendees) fields.minAtendees = body.minAtendees
   if (body.maxAtendees) fields.maxAtendees = body.maxAtendees
   return fields
+}
+
+const fetchEventFieldsFromBody = (body) => {
+  const { name, description, locationName, length, minAtendees, maxAtendees, location, contacts, dates } = body
+  const formattedDates = dates.map(date => moment(date).format('YYYY-MM-DD HH:mm:ss'))
+  const expires = moment().add(body.deadline, 'hours').format('YYYY-MM-DD HH:mm:ss')
+  const latlng = `${location.latitude};${location.longitude}`
+  const phoneNumbers = contacts.map(x => x.phone.replace(/[-+()\s]/g, ''))
+  const event = { title: name, description, location: latlng, locationName, lengthInDays: length, expires, minAtendees, maxAtendees }
+  const adminInvite = { approval: 2, admin: 1, date1: formattedDates[0], date2: formattedDates[1], date3: formattedDates[2] }
+  return { event, adminInvite, phoneNumbers }
 }
