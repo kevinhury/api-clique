@@ -73,6 +73,9 @@ const authenticateUser = (pid, password) => {
           }
           return jwt.sign(user, secret, { expiresIn: 1440 })
         })
+        .then(accessToken => {
+          return { pid: user.pid, username: user.username, image: user.image_url, phone: user.phone, accessToken }
+        })
     })
 }
 

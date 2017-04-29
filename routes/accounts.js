@@ -27,8 +27,8 @@ router.post('/verifyRegister', (req, res) => {
   controller.authRegisterToken(phone, password, token)
     .then((pid) => {
       return controller.authenticateUser(pid, password)
-        .then((accessToken) => {
-          return res.send({ success: true, pid, accessToken })
+        .then(user => {
+          return res.send(Object.assign({}, user, { success: true }))
         })
     })
     .catch(() => {
@@ -43,8 +43,8 @@ router.post('/authenticate', (req, res) => {
     return res.status(400).send({ success: false, message: 'Invalid parameters.' })
   }
   controller.authenticateUser(pid, password)
-    .then((accessToken) => {
-      return res.send({ success: true, accessToken })
+    .then(user => {
+      return res.send(Object.assign({}, user, { success: true }))
     })
     .catch(() => {
       return res.status(403).send({ success: false, message: 'Invalid crendentials' })
