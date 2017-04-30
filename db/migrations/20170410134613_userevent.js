@@ -7,6 +7,7 @@ exports.up = function (knex) {
     table.string('description').notNullable()
     table.string('locationName').notNullable()
     table.string('location').notNullable()
+    table.string('address').notNullable()
     table.integer('lengthInDays').unsigned().defaultTo(0)
     table.integer('eventStatus').unsigned().defaultTo(0)
     table.dateTime('expires').notNullable()

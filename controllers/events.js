@@ -97,6 +97,7 @@ const availableEventDates = (eventId) => {
     .where({ userevent_id: eventId, admin: 1 })
     .map(res => {
       return [res.date1, res.date2, res.date3]
+        .filter(date => date)
     })
     .then(res => res[0] || null)
     .map(str => str ? new Date(str) : null)
@@ -119,7 +120,7 @@ const mapEventResultsToResponse = (results) => {
     const { pid, username, image_url, phone, approval, admin, date1, date2, date3 } = object
     return { pid, username, image_url, phone, approval, admin, date1, date2, date3 }
   })
-  const { id, title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees } = results[0]
-  const event = { id, title, description, locationName, location, lengthInDays, eventStatus, expires, minAtendees, maxAtendees }
+  const { id, title, description, locationName, location, address, lengthInDays, eventStatus, expires, minAtendees, maxAtendees } = results[0]
+  const event = { id, title, description, locationName, location, address, lengthInDays, eventStatus, expires, minAtendees, maxAtendees }
   return { event, atendees }
 }
