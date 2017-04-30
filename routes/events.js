@@ -85,13 +85,20 @@ router.patch('/changeAttendance', (req, res) => {
   if (approval === '2' && (!Array.isArray(dates) || !dates.length)) {
     return res.sendStatus(400)
   }
-  // TODO: Add check for admin dates
   // TODO: Check if admin changes dates
-  controller.changeEventInvitation(accountId, eventId, approval, dates)
+  controller.availableEventDates(eventId)
+    .then(availableDates => {
+      req.body.dates
+        .map(x => new Date(x))
+        .forEach(date => {
+          if (!availableDates.find(x => x.getTime() === date.getTime())) throw date
+        })
+      return true
+    })
+    .then(() => controller.changeEventInvitation(accountId, eventId, approval, dates))
     .then(() => res.send({ success: true }))
-    .catch((err) => {
-      console.log(err)
-      res.send({ success: false })
+    .catch(() => {
+      res.status(400).send({ success: false })
     })
 })
 
@@ -99,9 +106,10 @@ router.patch('/changeAttendance', (req, res) => {
  * Change an event fields based on the event id.
  */
 router.patch('/modifyFields', (req, res) => {
-  const accountId = req.body.account_id
-  const eventId = req.body.event_id
-  if (!accountId || !eventId) {
+  const accountId = req.body.pid
+  const accessToken = req.bdoy.accessToken
+  const eventId = req.body.eventId
+  if (!accountId || !accessToken || !eventId) {
     return res.sendStatus(400)
   }
   const fields = populateFieldsWithRequestBody(req.body)

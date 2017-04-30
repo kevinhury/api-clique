@@ -92,6 +92,16 @@ const isAccountAdminInEvent = (accountId, eventId) => {
     .then((result) => result[0] || 0)
 }
 
+const availableEventDates = (eventId) => {
+  return db('EventInvitation')
+    .where({ userevent_id: eventId, admin: 1 })
+    .map(res => {
+      return [res.date1, res.date2, res.date3]
+    })
+    .then(res => res[0] || null)
+    .map(str => str ? new Date(str) : null)
+}
+
 module.exports = {
   createNewEvent,
   getEventById,
@@ -101,6 +111,7 @@ module.exports = {
   changeEventInvitation,
   changeEventFields,
   isAccountAdminInEvent,
+  availableEventDates,
 }
 
 const mapEventResultsToResponse = (results) => {
