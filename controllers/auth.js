@@ -44,14 +44,14 @@ const authRegisterToken = (phone, password, token) => {
 }
 
 const authMiddleware = (req, res, next) => {
-  const token = req.body.token || req.headers['x-access-token']
+  const token = req.body.accessToken || req.headers['x-access-token']
   if (!token) {
     return res.status(403).send({ success: false, message: 'No token provided.' })
   }
 
   jwt.verify(token, secret, (err, decoded) => {
     if (err) {
-      return res.json({ success: false, message: 'Failed to authenticate token.' })
+      return res.status(403).json({ success: false, message: 'Failed to authenticate token.' })
     }
     req.decoded = decoded
     next()

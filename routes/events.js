@@ -2,6 +2,9 @@ var moment = require('moment')
 var express = require('express')
 const router = express.Router()
 const controller = require('../controllers/events')
+const auth = require('../controllers/auth')
+
+router.use(auth.authMiddleware)
 
 /**
  * Creates a new event.
