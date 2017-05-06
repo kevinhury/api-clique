@@ -1,3 +1,4 @@
+var moment = require('moment')
 var db = require('../db/db')
 
 const createNewEvent = (fields, accountId) => {
@@ -46,6 +47,10 @@ const getEventById = (eventId) => {
     .innerJoin('UserEvent', 'EventInvitation.userevent_id', 'UserEvent.id')
     .where('UserEvent.id', eventId)
     .then(mapEventResultsToResponse)
+    .then(res => {
+      return modifyStatusByExpiration(res)
+        .then(() => res)
+    })
 }
 
 const getEventsForAccountId = (accountId) => {
@@ -103,6 +108,25 @@ const availableEventDates = (eventId) => {
     .map(str => str ? new Date(str) : null)
 }
 
+const modifyStatusByExpiration = ({ event, atendees }) => {
+  if (event.eventStatus === 0 && moment(event.expires).isBefore(moment())) {
+    return Promise.resolve(true)
+  }
+  const dates = atendees
+    .filter(x => x.approval === 2)
+    .map(x => [x.date1, x.date2, x.date3].filter(Boolean))
+    .reduce((a, b) => a.concat(b))
+    .map(String)
+
+  const dateRepetition = commonElement(dates).max
+  const eventStatus = dateRepetition < event.minAtendees ? 1 : 2
+  event.eventStatus = eventStatus
+
+  return db('UserEvent')
+    .where('id', event.id)
+    .update({ eventStatus })
+}
+
 module.exports = {
   createNewEvent,
   getEventById,
@@ -113,6 +137,7 @@ module.exports = {
   changeEventFields,
   isAccountAdminInEvent,
   availableEventDates,
+  modifyStatusByExpiration,
 }
 
 const mapEventResultsToResponse = (results) => {
@@ -123,4 +148,18 @@ const mapEventResultsToResponse = (results) => {
   const { id, title, description, locationName, location, address, lengthInDays, eventStatus, expires, minAtendees, maxAtendees } = results[0]
   const event = { id, title, description, locationName, location, address, lengthInDays, eventStatus, expires, minAtendees, maxAtendees }
   return { event, atendees }
+}
+
+const commonElement = (array) => {
+  const frequency = {}
+  let max = 0
+  let element = null
+  for (let v in array) {
+    frequency[array[v]] = (frequency[array[v]] || 0) + 1
+    if (frequency[array[v]] > max) {
+      max = frequency[array[v]]
+      element = array[v]
+    }
+  }
+  return { element, max }
 }
