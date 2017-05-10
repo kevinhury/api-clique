@@ -4,12 +4,6 @@ var bcrypt = require('bcrypt')
 var db = require('../db/db')
 var smsservice = require('../services/smsservice')
 var uuidservice = require('../services/uuidservice')
-// var smsservice = {
-//   sendSMS: (str, str2, callback) => {
-//     console.log(str2)
-//     callback(null, str)
-//   }
-// }
 
 var AccountsTokens = []
 
@@ -18,6 +12,7 @@ var AccountsTokens = []
 // saves the user in memory until a auth-register comes
 const registerNewUser = (phone, password) => {
   const token = generateToken(6)
+  console.log(`new token generated: ${token}`)
   AccountsTokens.push({ phone, password, token })
   return new Promise((resolve, reject) => {
     smsservice.sendSMS(phone, generateSMSMessage(token), (err, _) => {

@@ -1,6 +1,7 @@
 var express = require('express')
 const router = express.Router()
 const controller = require('../controllers/auth')
+const eventsController = require('../controllers/events')
 
 router.post('/register', (req, res) => {
   const phone = req.body.phone
@@ -25,6 +26,10 @@ router.post('/verifyRegister', (req, res) => {
     return res.status(400).send({ success: false, message: 'Invalid parameters.' })
   }
   controller.authRegisterToken(phone, password, token)
+    .then((pid) => {
+      return eventsController.transformPhoneInvitation(phone)
+        .then(() => pid)
+    })
     .then((pid) => {
       return controller.authenticateUser(pid, password)
         .then(user => {

@@ -127,6 +127,35 @@ const modifyStatusByExpiration = ({ event, atendees }) => {
     .update({ eventStatus })
 }
 
+const transformPhoneInvitation = (phone) => {
+  // TODO: invitations check dates of invites, maybe event is already over?
+  const queryInvitations =
+    db('PhoneInvitation')
+      .select('*')
+      .innerJoin('Account', 'PhoneInvitation.phone', 'Account.phone')
+      .where({ 'PhoneInvitation.phone': phone, 'PhoneInvitation.used': 0 })
+
+  const turnOffInvitations = (invites) =>
+    db('PhoneInvitation')
+      .whereIn('id', invites.map(x => x.id))
+      .update({ used: 1 })
+
+  const createEventInvitations = (invites) => {
+    const mapped = invites.map(x => {
+      return { account_id: x.id, userevent_id: x.userevent_id }
+    })
+    return db('EventInvitation')
+      .insert(mapped)
+  }
+
+  return queryInvitations
+    .then(invites => {
+      if (!invites.length) return Promise.resolve()
+      return turnOffInvitations(invites)
+        .then(() => createEventInvitations(invites))
+    })
+}
+
 module.exports = {
   createNewEvent,
   getEventById,
@@ -138,6 +167,7 @@ module.exports = {
   isAccountAdminInEvent,
   availableEventDates,
   modifyStatusByExpiration,
+  transformPhoneInvitation,
 }
 
 const mapEventResultsToResponse = (results) => {
