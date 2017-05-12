@@ -11,9 +11,8 @@ router.use(auth.authMiddleware)
  */
 router.post('/createEvent', (req, res) => {
   const pid = req.body.pid
-  const accessToken = req.body.accessToken
   const fields = req.body.fields
-  if (!pid || !accessToken) {
+  if (!pid) {
     return res.sendStatus(400)
   }
   const eventFields = fetchEventFieldsFromBody(fields)
@@ -54,9 +53,8 @@ router.get('/account/:account_id', (req, res) => {
 router.patch('/cancel', (req, res) => {
   const accountId = req.body.pid
   const eventId = req.body.eventId
-  const accessToken = req.body.accessToken
   const CANCEL_CODE = 1
-  if (!accountId || !eventId || !accessToken) {
+  if (!accountId || !eventId) {
     return res.sendStatus(400)
   }
   controller.isAccountAdminInEvent(accountId, eventId)
@@ -75,8 +73,7 @@ router.patch('/changeAttendance', (req, res) => {
   const accountId = req.body.pid
   const eventId = req.body.eventId
   const approval = req.body.approval
-  const accessToken = req.body.accessToken
-  if (!accountId || !eventId || !approval || !accessToken) {
+  if (!accountId || !eventId || !approval) {
     return res.sendStatus(400)
   }
 
@@ -110,9 +107,8 @@ router.patch('/changeAttendance', (req, res) => {
  */
 router.patch('/modifyFields', (req, res) => {
   const accountId = req.body.pid
-  const accessToken = req.bdoy.accessToken
   const eventId = req.body.eventId
-  if (!accountId || !accessToken || !eventId) {
+  if (!accountId || !eventId) {
     return res.sendStatus(400)
   }
   const fields = populateFieldsWithRequestBody(req.body)
