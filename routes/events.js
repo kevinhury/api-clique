@@ -140,8 +140,9 @@ const fetchEventFieldsFromBody = (body) => {
   const formattedDates = dates.map(date => moment(date).format('YYYY-MM-DD HH:mm:ss'))
   const expires = moment().add(body.deadline, 'hours').format('YYYY-MM-DD HH:mm:ss')
   const latlng = `${location.latitude};${location.longitude}`
+  const address = location.address
   const phoneNumbers = contacts.map(x => x.phone.replace(/[-+()\s]/g, ''))
-  const event = { title: name, description, location: latlng, locationName, lengthInDays: length, expires, minAtendees, maxAtendees }
+  const event = { title: name, description, location: latlng, locationName, address, lengthInDays: length, expires, minAtendees, maxAtendees }
   const adminInvite = { approval: 2, admin: 1, date1: formattedDates[0], date2: formattedDates[1], date3: formattedDates[2] }
   return { event, adminInvite, phoneNumbers }
 }
