@@ -109,13 +109,13 @@ const availableEventDates = (eventId) => {
 }
 
 const modifyStatusByExpiration = ({ event, atendees }) => {
-  if (event.eventStatus === 0 && moment(event.expires).isBefore(moment())) {
+  if (event.eventStatus === 0 && moment(event.expires).isAfter(moment())) {
     return Promise.resolve(true)
   }
   const dates = atendees
     .filter(x => x.approval === 2)
     .map(x => [x.date1, x.date2, x.date3].filter(Boolean))
-    .reduce((a, b) => a.concat(b))
+    .reduce((a, b) => a.concat(b), [])
     .map(String)
 
   const dateRepetition = commonElement(dates).max
