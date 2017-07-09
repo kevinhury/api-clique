@@ -13,7 +13,8 @@ router.post('/register', (req, res) => {
     .then(() => {
       res.send({ success: true })
     })
-    .catch(() => {
+    .catch(error => {
+      console.log(error)
       res.send({ success: false })
     })
 })
@@ -36,7 +37,8 @@ router.post('/verifyRegister', (req, res) => {
           return res.send(Object.assign({}, user, { success: true }))
         })
     })
-    .catch(() => {
+    .catch(error => {
+      console.log(error)
       return res.status(403).send({ success: false, message: 'Invalid crendentials' })
     })
 })
@@ -51,7 +53,8 @@ router.post('/authenticate', (req, res) => {
     .then(user => {
       return res.send(Object.assign({}, user, { success: true }))
     })
-    .catch(() => {
+    .catch(error => {
+      console.log(error)
       return res.status(403).send({ success: false, message: 'Invalid crendentials' })
     })
 })

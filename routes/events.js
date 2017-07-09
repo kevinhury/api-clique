@@ -20,7 +20,10 @@ router.post('/createEvent', (req, res) => {
   controller.getAccountIdForPid(pid)
     .then(accountId => controller.createNewEvent(eventFields, accountId))
     .then((results) => res.send({ success: true, results }))
-    .catch(() => res.send({ success: false }))
+    .catch(error => {
+      console.log(error)
+      res.send({ success: false })
+    })
 })
 
 /**
@@ -63,7 +66,10 @@ router.patch('/cancel', (req, res) => {
       return controller.modifyEventStatus(eventId, CANCEL_CODE)
     })
     .then(() => res.send({ success: true }))
-    .catch(() => res.send({ success: false }))
+    .catch(error => {
+      console.log(error)
+      res.send({ success: false })
+    })
 })
 
 /**
@@ -97,7 +103,8 @@ router.patch('/changeAttendance', (req, res) => {
     })
     .then(() => controller.changeEventInvitation(accountId, eventId, approval, dates))
     .then(() => res.send({ success: true }))
-    .catch(() => {
+    .catch(error => {
+      console.log(error)
       res.status(400).send({ success: false })
     })
 })
@@ -117,7 +124,10 @@ router.patch('/modifyFields', (req, res) => {
   }
   controller.changeEventFields(eventId, fields)
     .then(() => res.send({ success: true }))
-    .catch(() => res.send({ success: false }))
+    .catch(error => {
+      console.log(error)
+      res.send({ success: false })
+    })
 })
 
 module.exports = router
