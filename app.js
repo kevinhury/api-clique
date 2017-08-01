@@ -4,7 +4,7 @@ var logger = require('morgan')
 var cookieParser = require('cookie-parser')
 var bodyParser = require('body-parser')
 
-var index = require('./routes/index')
+var index = require('./api/index')
 var accounts = require('./api/accounts')
 var events = require('./api/events')
 

@@ -1,9 +1,9 @@
-var jwt = require('jsonwebtoken')
-var secret = require('../config/secrets/jwt').secret
-var bcrypt = require('bcrypt')
-var db = require('../db/db')
-var smsservice = require('../services/smsservice')
-var uuidservice = require('../services/uuidservice')
+const jwt = require('jsonwebtoken')
+const secret = require('../../config/secrets/jwt').secret
+const bcrypt = require('bcrypt')
+const db = require('../../db/db')
+const smsservice = require('../../services/smsservice')
+const uuidservice = require('../../services/uuidservice')
 
 var AccountsTokens = []
 

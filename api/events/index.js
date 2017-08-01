@@ -1,7 +1,7 @@
 var express = require('express')
 const router = express.Router()
 const controller = require('./events.controller')
-const auth = require('../controllers/auth')
+const auth = require('../accounts/accounts.service')
 
 router.use(auth.authMiddleware)
 
