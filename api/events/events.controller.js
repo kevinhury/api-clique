@@ -1,5 +1,6 @@
 var moment = require('moment')
-const service = require('./events.service')
+const eventsService = require('./events.service')
+const smsService = require('../../services/smsservice')
 
 const createEvent = (req, res) => {
   const pid = req.body.pid
@@ -9,8 +10,24 @@ const createEvent = (req, res) => {
   }
   const eventFields = fetchEventFieldsFromBody(fields)
   // Validate form
-  service.getAccountIdForPid(pid)
-    .then(accountId => service.createNewEvent(eventFields, accountId))
+  eventsService.getAccountIdForPid(pid)
+    .then(accountId => eventsService.createNewEvent(eventFields, accountId))
+    .then(event => {
+      return eventsService
+        .groupPhoneRegistration(eventFields.phoneNumbers, event.id)
+        .then(({ exist, notExist }) => {
+          console.log(`TODO: Push for exist recipeints ${exist}`)
+          const smsActions = notExist.map(({ phone }) =>
+            smsService.sendSMS(phone, 'You have been invited to an event')
+          )
+          return Promise.all(smsActions)
+            .catch(error => {
+              console.log(error)
+              return event
+            })
+        })
+        .then(() => event)
+    })
     .then((results) => res.send({ success: true, results }))
     .catch(error => {
       console.log(error)
@@ -23,7 +40,7 @@ const eventById = (req, res) => {
   if (!eventId) {
     return res.sendStatus(400)
   }
-  service.getEventById(eventId)
+  eventsService.getEventById(eventId)
     .then((result) => res.send(result))
 }
 
@@ -32,7 +49,7 @@ const eventsForAccount = (req, res) => {
   if (!accountId) {
     return res.sendStatus(400)
   }
-  service.getEventsForAccountId(accountId)
+  eventsService.getEventsForAccountId(accountId)
     .then((result) => res.send(result))
 }
 
@@ -43,10 +60,10 @@ const cancelEvent = (req, res) => {
   if (!accountId || !eventId) {
     return res.sendStatus(400)
   }
-  service.isAccountAdminInEvent(accountId, eventId)
+  eventsService.isAccountAdminInEvent(accountId, eventId)
     .then((isAdmin) => {
       if (!isAdmin) { throw isAdmin }
-      return service.modifyEventStatus(eventId, CANCEL_CODE)
+      return eventsService.modifyEventStatus(eventId, CANCEL_CODE)
     })
     .then(() => res.send({ success: true }))
     .catch(error => {
@@ -72,7 +89,7 @@ const changeAttendance = (req, res) => {
     return res.sendStatus(400)
   }
   // TODO: Check if admin changes dates
-  service.availableEventDates(eventId)
+  eventsService.availableEventDates(eventId)
     .then(availableDates => {
       req.body.dates
         .map(x => new Date(x))
@@ -81,7 +98,7 @@ const changeAttendance = (req, res) => {
         })
       return true
     })
-    .then(() => service.changeEventInvitation(accountId, eventId, approval, dates))
+    .then(() => eventsService.changeEventInvitation(accountId, eventId, approval, dates))
     .then(() => res.send({ success: true }))
     .catch(error => {
       console.log(error)
@@ -99,7 +116,7 @@ const changeEventFields = (req, res) => {
   if (Object.keys(fields).length === 0) {
     return res.send({ success: false })
   }
-  service.changeEventFields(eventId, fields)
+  eventsService.changeEventFields(eventId, fields)
     .then(() => res.send({ success: true }))
     .catch(error => {
       console.log(error)

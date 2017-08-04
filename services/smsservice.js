@@ -7,8 +7,13 @@ const options = {
 
 const nexmo = new Nexmo(config, options)
 
-const sendSMS = (recipient, message, callback) => {
-  return nexmo.message.sendSms('Clique', recipient, message, {}, callback)
+const sendSMS = (recipient, message) => {
+  return new Promise((resolve, reject) => {
+    nexmo.message.sendSms('Clique', recipient, message, {}, (err, results) => {
+      if (err) { return reject(err) }
+      resolve(results)
+    })
+  })
 }
 
 module.exports = {

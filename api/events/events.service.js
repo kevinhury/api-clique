@@ -21,7 +21,7 @@ const insertAdminInvitation = (invite, accountId, eventId) => {
     .catch((err) => console.log(err))
 }
 
-const insertContactsInvitations = (phoneNumbers, eventId) => {
+const groupPhoneRegistration = (phoneNumbers, eventId) => {
   return db('Account')
     .whereIn('phone', phoneNumbers)
     .then(accounts => {
@@ -34,11 +34,18 @@ const insertContactsInvitations = (phoneNumbers, eventId) => {
         .map(phone => {
           return { phone, userevent_id: eventId }
         })
-      return Promise.all([
-        db('PhoneInvitation').insert(notExist),
-        db('EventInvitation').insert(exist)
-      ])
+      return { exist, notExist }
     })
+}
+
+const insertContactsInvitations = (phoneNumbers, eventId) => {
+  return groupPhoneRegistration(phoneNumbers, eventId)
+    .then(({ exist, notExist }) =>
+      Promise.all([
+        db('PhoneInvitation').insert(notExist),
+        db('EventInvitation').insert(exist),
+      ])
+    )
 }
 
 const getEventById = (eventId) => {
@@ -168,6 +175,7 @@ module.exports = {
   availableEventDates,
   modifyStatusByExpiration,
   transformPhoneInvitation,
+  groupPhoneRegistration,
 }
 
 const mapEventResultsToResponse = (results) => {

@@ -14,14 +14,7 @@ const registerNewUser = (phone, password) => {
   const token = generateToken(6)
   console.log(`new token generated: ${token}`)
   AccountsTokens.push({ phone, password, token })
-  return new Promise((resolve, reject) => {
-    smsservice.sendSMS(phone, generateSMSMessage(token), (err, _) => {
-      if (err) {
-        return reject(err)
-      }
-      resolve(token)
-    })
-  })
+  return smsservice.sendSMS(phone, generateSMSMessage(token))
 }
 
 // checks if the token sent by sms is valid
